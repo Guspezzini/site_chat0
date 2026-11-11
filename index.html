@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Instantâneo</title>
+    <link rel="stylesheet" href="style2.css">
+    <script src="https://unpkg.com"></script>
+</head>
+<body>
+
+    <header>
+        <div class="room-info">
+            <span id="status-dot" class="dot offline"></span>
+            <span id="status-text">Conectando sala...</span>
+        </div>
+        <div class="header-actions">
+            <input type="text" id="username" placeholder="Seu apelido" maxlength="20">
+            <button id="copy-link-btn" class="btn-header">Copiar Link da Sala</button>
+            <button id="new-room-btn" class="btn-header">Nova Sala</button>
+        </div>
+    </header>
+
+    <!-- CRÉDITO NO CANTO SUPERIOR DIREITO (Cole seu link dentro das aspas do href) -->
+    <div class="dev-credit">
+        feito por <a href="COLOQUE_SEU_LINK_AQUI" target="_blank" rel="noopener noreferrer">@gusta_d.p</a>
+    </div>
+
+    <!-- ÁREA ONDE AS MENSAGENS APARECEM -->
+    <main id="messages"></main>
+
+    <!-- ÁREA ONDE VOCÊ ESCREVE -->
+    <footer>
+        <div class="input-box">
+            <input type="text" id="msg-input" placeholder="Escreva sua mensagem aqui e aperte Enter..." autocomplete="off">
+            <button id="send-btn">Enviar</button>
+        </div>
+    </footer>
+
+    <script src="script2.js"></script>
+</body>
+</html>
