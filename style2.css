@@ -178,17 +178,16 @@ footer {
 }
 
 /* Crédito discreto no canto superior direito (logo abaixo da barra) */
+/* Crédito discreto no canto superior direito (logo abaixo da barra) */
 .dev-credit {
-    position: fixed;
-    top: 68px;
-    right: 16px;
+    align-self: flex-end; /* Alinha à direita dentro do body (que usa flex-column) */
+    margin: 10px 16px 0 0; /* Dá espaçamento do topo e da direita */
     font-size: 0.78rem;
     color: #7c7c8a;
     background-color: rgba(32, 32, 36, 0.85);
     padding: 5px 10px;
     border-radius: 6px;
     border: 1px solid #323238;
-    z-index: 1000;
 }
 
 .dev-credit a {
@@ -202,3 +201,4 @@ footer {
     color: #ffffff;
     text-decoration: underline;
 }
+
