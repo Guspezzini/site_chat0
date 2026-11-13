@@ -1,152 +1,365 @@
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+// ==========================================
+// CONFIGURAÇÃO DO SUPABASE
+// ==========================================
+
+const SUPABASE_URL = 'SUA_URL_DO_SUPABASE';
+const SUPABASE_KEY = 'SUA_CHAVE_PUBLICA';
+
+const supabase = createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+// ==========================================
+// ELEMENTOS HTML
+// ==========================================
+
 const statusDot = document.getElementById('status-dot');
 const statusText = document.getElementById('status-text');
+
 const usernameInput = document.getElementById('username');
 const copyLinkBtn = document.getElementById('copy-link-btn');
 const newRoomBtn = document.getElementById('new-room-btn');
+
 const messagesDiv = document.getElementById('messages');
 const msgInput = document.getElementById('msg-input');
 const sendBtn = document.getElementById('send-btn');
 
-let peer = null;
-let connections = [];
+// ==========================================
+// VARIÁVEIS
+// ==========================================
+
 let myName = 'Anônimo_' + Math.floor(100 + Math.random() * 900);
+
+let roomCode = window.location.hash
+    .replace('#', '')
+    .toUpperCase();
+
+let loadedMessages = new Set();
+let sending = false;
+let pollingInterval = null;
+
 usernameInput.value = myName;
 
-// Atualiza apelido se o usuário mudar no topo
+// ==========================================
+// ATUALIZAR APELIDO
+// ==========================================
+
 usernameInput.addEventListener('input', () => {
-    myName = usernameInput.value.trim() || 'Anônimo';
+
+    myName = usernameInput.value.trim().slice(0, 20) || 'Anônimo';
+
 });
 
-// Pega o código da sala na URL (#codigo) ou cria um novo na hora
-let roomCode = window.location.hash.replace('#', '');
-if (!roomCode) {
-    roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    window.location.hash = roomCode;
-}
+// ==========================================
+// ADICIONAR MENSAGENS NA TELA
+// ==========================================
 
-const hostId = 'sala-instantanea-' + roomCode;
+function addMessage(sender, text, type = 'other', id = null) {
 
-// Adiciona mensagens na tela
-function addMessage(sender, text, type = 'other') {
+    if (id !== null) {
+
+        if (loadedMessages.has(String(id))) {
+            return;
+        }
+
+        loadedMessages.add(String(id));
+
+    }
+
     const div = document.createElement('div');
+
     div.classList.add('msg');
 
     if (type === 'system') {
+
         div.classList.add('msg-system');
         div.textContent = text;
+
     } else {
-        div.classList.add(type === 'me' ? 'msg-me' : 'msg-other');
-        div.innerHTML = `<div class="msg-sender">${escapeHtml(sender)}</div><div>${escapeHtml(text)}</div>`;
+
+        div.classList.add(
+            type === 'me' ? 'msg-me' : 'msg-other'
+        );
+
+        const senderDiv = document.createElement('div');
+
+        senderDiv.classList.add('msg-sender');
+        senderDiv.textContent = sender;
+
+        const textDiv = document.createElement('div');
+
+        textDiv.textContent = text;
+
+        div.appendChild(senderDiv);
+        div.appendChild(textDiv);
+
     }
 
     messagesDiv.appendChild(div);
+
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+// ==========================================
+// CRIAR NOVA SALA
+// ==========================================
+
+async function createRoom() {
+
+    const { data, error } = await supabase.rpc('create_room');
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+
 }
 
-// Inicia a conexão automaticamente
-function initRoom() {
-    // Tenta ser o criador (Host) da sala
-    peer = new Peer(hostId);
+// ==========================================
+// CARREGAR MENSAGENS
+// ==========================================
 
-    peer.on('open', () => {
-        statusDot.className = 'dot online';
-        statusText.textContent = `Sala: ${roomCode} (Online)`;
-        addMessage('', 'Sala pronta! Escreva abaixo ou clique em "Copiar Link da Sala" para chamar alguém.', 'system');
+async function loadMessages() {
+
+    const { data, error } = await supabase.rpc('get_messages', {
+
+        p_code: roomCode
+
     });
 
-    // Quando alguém entra na sua sala
-    peer.on('connection', (conn) => {
-        setupConnection(conn);
+    if (error) {
+        throw error;
+    }
+
+    // A função SQL retorna as mensagens mais recentes primeiro.
+    // Aqui colocamos na ordem correta.
+
+    data.reverse();
+
+    data.forEach(message => {
+
+        const type = message.sender === myName ? 'me' : 'other';
+
+        addMessage(
+            message.sender,
+            message.content,
+            type,
+            message.id
+        );
+
     });
 
-    // Se a sala já existe (alguém já abriu o link antes), entra como convidado
-    peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-            peer.destroy();
-            joinExistingRoom();
-        } else {
-            statusText.textContent = 'Modo Local (Offline)';
-        }
-    });
 }
 
-function joinExistingRoom() {
-    peer = new Peer();
-    peer.on('open', () => {
-        const conn = peer.connect(hostId);
-        conn.on('open', () => {
-            statusDot.className = 'dot online';
-            statusText.textContent = `Sala: ${roomCode} (Conectado)`;
-            addMessage('', 'Você entrou na conversa!', 'system');
-            conn.send({ type: 'join', sender: myName });
-            setupConnection(conn);
-        });
-    });
+// ==========================================
+// ATUALIZAR MENSAGENS
+// ==========================================
+
+async function updateMessages() {
+
+    try {
+
+        await loadMessages();
+
+    } catch (error) {
+
+        console.error('Erro ao atualizar mensagens:', error);
+
+    }
+
 }
 
-function setupConnection(conn) {
-    connections.push(conn);
+// ==========================================
+// ENVIAR MENSAGEM
+// ==========================================
 
-    conn.on('data', (data) => {
-        if (data.type === 'join') {
-            addMessage('', `${data.sender} entrou na sala.`, 'system');
-            broadcast(data, conn);
-        } else if (data.type === 'chat') {
-            addMessage(data.sender, data.text, 'other');
-            broadcast(data, conn);
-        }
-    });
+async function sendMessage() {
 
-    conn.on('close', () => {
-        connections = connections.filter(c => c !== conn);
-        addMessage('', 'Um participante saiu.', 'system');
-    });
-}
-
-function broadcast(data, excludeConn) {
-    connections.forEach(conn => {
-        if (conn !== excludeConn && conn.open) {
-            conn.send(data);
-        }
-    });
-}
-
-// Enviar mensagem
-function sendMessage() {
     const text = msgInput.value.trim();
-    if (!text) return;
 
-    addMessage(myName, text, 'me');
-    msgInput.value = '';
+    if (!text || sending) {
+        return;
+    }
 
-    const payload = { type: 'chat', sender: myName, text: text };
-    connections.forEach(conn => {
-        if (conn.open) conn.send(payload);
-    });
+    if (text.length > 2000) {
+        alert('A mensagem é muito grande.');
+        return;
+    }
+
+    sending = true;
+    sendBtn.disabled = true;
+
+    try {
+
+        const { error } = await supabase.rpc('send_message', {
+
+            p_code: roomCode,
+            p_sender: myName,
+            p_content: text
+
+        });
+
+        if (error) {
+            throw error;
+        }
+
+        msgInput.value = '';
+
+        await updateMessages();
+
+    } catch (error) {
+
+        console.error('Erro ao enviar mensagem:', error);
+
+        alert('Não foi possível enviar a mensagem.');
+
+    } finally {
+
+        sending = false;
+        sendBtn.disabled = false;
+
+    }
+
 }
+
+// ==========================================
+// INICIAR SALA
+// ==========================================
+
+async function initRoom() {
+
+    try {
+
+        // Se não existir código na URL, cria uma sala.
+
+        if (!roomCode) {
+
+            roomCode = await createRoom();
+
+            window.location.hash = roomCode;
+
+        }
+
+        // Carrega as mensagens da sala.
+
+        await loadMessages();
+
+        statusDot.className = 'dot online';
+
+        statusText.textContent = `Sala: ${roomCode} (Online)`;
+
+        addMessage(
+            '',
+            'Você entrou na sala! Compartilhe o link para conversar.',
+            'system'
+        );
+
+        // Atualiza as mensagens periodicamente.
+
+        pollingInterval = setInterval(() => {
+
+            updateMessages();
+
+        }, 1500);
+
+    } catch (error) {
+
+        console.error('Erro ao iniciar sala:', error);
+
+        statusDot.className = 'dot offline';
+
+        statusText.textContent = 'Erro ao conectar';
+
+        addMessage(
+            '',
+            'Não foi possível acessar esta sala. Verifique o código ou a conexão.',
+            'system'
+        );
+
+    }
+
+}
+
+// ==========================================
+// BOTÃO ENVIAR
+// ==========================================
 
 sendBtn.addEventListener('click', sendMessage);
-msgInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
+
+msgInput.addEventListener('keydown', event => {
+
+    if (event.key === 'Enter') {
+
+        sendMessage();
+
+    }
+
 });
 
-// Copiar link completo da sala
-copyLinkBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(window.location.href);
-    copyLinkBtn.textContent = 'Link Copiado!';
-    setTimeout(() => copyLinkBtn.textContent = 'Copiar Link da Sala', 2000);
+// ==========================================
+// COPIAR LINK DA SALA
+// ==========================================
+
+copyLinkBtn.addEventListener('click', async () => {
+
+    try {
+
+        await navigator.clipboard.writeText(window.location.href);
+
+        copyLinkBtn.textContent = 'Link Copiado!';
+
+        setTimeout(() => {
+
+            copyLinkBtn.textContent = 'Copiar Link da Sala';
+
+        }, 2000);
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert('Não foi possível copiar o link.');
+
+    }
+
 });
 
-// Criar uma nova sala limpa
-newRoomBtn.addEventListener('click', () => {
-    window.location.hash = '';
-    window.location.reload();
+// ==========================================
+// CRIAR OUTRA SALA
+// ==========================================
+
+newRoomBtn.addEventListener('click', async () => {
+
+    try {
+
+        newRoomBtn.disabled = true;
+
+        const newCode = await createRoom();
+
+        window.location.hash = newCode;
+
+        window.location.reload();
+
+    } catch (error) {
+
+        console.error('Erro ao criar sala:', error);
+
+        alert('Não foi possível criar uma nova sala.');
+
+        newRoomBtn.disabled = false;
+
+    }
+
 });
+
+// ==========================================
+// INICIAR PROJETO
+// ==========================================
 
 initRoom();
