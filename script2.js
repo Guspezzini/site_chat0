@@ -5,8 +5,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 // CONFIGURAÇÃO DO SUPABASE
 // ==========================================
 
-const SUPABASE_URL = 'SUA_URL_DO_SUPABASE';
-const SUPABASE_KEY = 'SUA_CHAVE_PUBLICA';
+const SUPABASE_URL = 'https://jzquulmppioyeagnisju.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_NGyslcPL9b6FBQMdoxYn5g_aWWS_NVf';
 
 const supabase = createClient(
     SUPABASE_URL,
