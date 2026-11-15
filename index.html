@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Instantâneo</title>
     <link rel="stylesheet" href="style2.css">
 </head>
+
 <body>
+
+
+<dialog id="meuPopUp">
+    <div class="tittle">
+        <h2>Seja Bem-vindo!</h2>
+    </div>
+
+    <div class="modal-body">
+        <label for="username">Antes de entrar, defina seu nome</label>
+
+        <input type="text" id="username" placeholder="Seu nome..."
+            maxlength="20" style="display: block; margin: 0 auto; text-align: center;">
+
+        <button id="fecharModal" class="btn-primario">Entrar</button>
+        
+        <p>ou</p>
+        
+        <button id="entrarAnonimo" class="btn-secundario">Entrar como anônimo</button>
+
+    </div>
+</dialog>
+
+
+
+
+
+
+
 
     <header>
         <div class="room-info">
@@ -19,9 +49,10 @@
             <button id="new-room-btn" class="btn-header">Nova Sala</button>
         </div>
     </header>
-    <!-- CRÉDITO NO CANTO SUPERIOR DIREITO (Cole seu link dentro das aspas do href) -->
+    <!-- link do iisntagram -->
     <div class="dev-credit">
-        feito por <a href="https://www.instagram.com/gusta_d.p/" target="_blank" rel="noopener noreferrer">@gusta_d.p</a>
+        feito por <a href="https://www.instagram.com/gusta_d.p/" target="_blank"
+            rel="noopener noreferrer">@gusta_d.p</a>
     </div>
 
 
@@ -31,11 +62,13 @@
     <!-- ÁREA ONDE VOCÊ ESCREVE -->
     <footer>
         <div class="input-box">
-            <input type="text" id="msg-input" placeholder="Escreva sua mensagem aqui e aperte Enter..." autocomplete="off">
+            <input type="text" id="msg-input" placeholder="Escreva sua mensagem aqui e aperte Enter..."
+                autocomplete="off">
             <button id="send-btn">Enviar</button>
         </div>
     </footer>
 
     <script type="module" src="script2.js"></script>
 </body>
+
 </html>

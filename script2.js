@@ -1,9 +1,87 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// ==========================================
+//===================================================
+// POP-UP E ESCOLHA DO NOME
+//===================================================
+
+const campos = document.querySelectorAll('#username');
+
+const modal = document.getElementById("meuPopUp");
+const btnEntrar = document.getElementById("fecharModal");
+const btnAnonimo = document.getElementById("entrarAnonimo");
+
+let myName = '';
+
+// Sincronizar os dois campos de nome
+campos.forEach(function(campoAtual) {
+
+    campoAtual.addEventListener('input', function() {
+
+        campos.forEach(function(outroCampo) {
+
+            if (outroCampo !== campoAtual) {
+                outroCampo.value = campoAtual.value;
+            }
+
+        });
+
+    });
+
+});
+
+// Abrir o pop-up
+modal.showModal();
+
+// Impedir que a pessoa feche o pop-up sem escolher
+modal.addEventListener('cancel', function(event) {
+    event.preventDefault();
+});
+
+// Entrar com nome escolhido
+btnEntrar.addEventListener("click", () => {
+
+    const nomeDigitado = campos[0].value.trim();
+
+    if (nomeDigitado === '') {
+
+        alert('Digite seu nome ou escolha entrar como anônimo!');
+        campos[0].focus();
+        return;
+
+    }
+
+    entrarNaSala(nomeDigitado.slice(0, 20));
+
+});
+
+// Entrar como anônimo
+btnAnonimo.addEventListener("click", () => {
+
+    const nomeAnonimo = 'Anônimo_' + Math.floor(100 + Math.random() * 900);
+
+    entrarNaSala(nomeAnonimo);
+
+});
+
+// Função responsável por entrar na sala
+function entrarNaSala(nome) {
+
+    myName = nome;
+
+    campos.forEach(campo => {
+        campo.value = myName;
+    });
+
+    modal.close();
+
+    initRoom();
+
+}
+
+//===================================================
 // CONFIGURAÇÃO DO SUPABASE
-// ==========================================
+//===================================================
 
 const SUPABASE_URL = 'https://jzquulmppioyeagnisju.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_NGyslcPL9b6FBQMdoxYn5g_aWWS_NVf';
@@ -13,14 +91,15 @@ const supabase = createClient(
     SUPABASE_KEY
 );
 
-// ==========================================
+//===================================================
 // ELEMENTOS HTML
-// ==========================================
+//===================================================
 
 const statusDot = document.getElementById('status-dot');
 const statusText = document.getElementById('status-text');
 
-const usernameInput = document.getElementById('username');
+const usernameInput = campos[1];
+
 const copyLinkBtn = document.getElementById('copy-link-btn');
 const newRoomBtn = document.getElementById('new-room-btn');
 
@@ -28,11 +107,9 @@ const messagesDiv = document.getElementById('messages');
 const msgInput = document.getElementById('msg-input');
 const sendBtn = document.getElementById('send-btn');
 
-// ==========================================
+//===================================================
 // VARIÁVEIS
-// ==========================================
-
-let myName = 'Anônimo_' + Math.floor(100 + Math.random() * 900);
+//===================================================
 
 let roomCode = window.location.hash
     .replace('#', '')
@@ -42,21 +119,16 @@ let loadedMessages = new Set();
 let sending = false;
 let pollingInterval = null;
 
-usernameInput.value = myName;
-
-// ==========================================
-// ATUALIZAR APELIDO
-// ==========================================
-
+// Atualizar o nome caso seja alterado no cabeçalho
 usernameInput.addEventListener('input', () => {
 
-    myName = usernameInput.value.trim().slice(0, 20) || 'Anônimo';
+    myName = usernameInput.value.trim().slice(0, 20);
 
 });
 
-// ==========================================
+//===================================================
 // ADICIONAR MENSAGENS NA TELA
-// ==========================================
+//===================================================
 
 function addMessage(sender, text, type = 'other', id = null) {
 
@@ -105,9 +177,9 @@ function addMessage(sender, text, type = 'other', id = null) {
 
 }
 
-// ==========================================
+//===================================================
 // CRIAR NOVA SALA
-// ==========================================
+//===================================================
 
 async function createRoom() {
 
@@ -121,9 +193,9 @@ async function createRoom() {
 
 }
 
-// ==========================================
+//===================================================
 // CARREGAR MENSAGENS
-// ==========================================
+//===================================================
 
 async function loadMessages() {
 
@@ -137,9 +209,7 @@ async function loadMessages() {
         throw error;
     }
 
-    // A função SQL retorna as mensagens mais recentes primeiro.
-    // Aqui colocamos na ordem correta.
-
+    // Colocar as mensagens na ordem correta
     data.reverse();
 
     data.forEach(message => {
@@ -157,9 +227,9 @@ async function loadMessages() {
 
 }
 
-// ==========================================
+//===================================================
 // ATUALIZAR MENSAGENS
-// ==========================================
+//===================================================
 
 async function updateMessages() {
 
@@ -175,9 +245,9 @@ async function updateMessages() {
 
 }
 
-// ==========================================
+//===================================================
 // ENVIAR MENSAGEM
-// ==========================================
+//===================================================
 
 async function sendMessage() {
 
@@ -228,16 +298,15 @@ async function sendMessage() {
 
 }
 
-// ==========================================
+//===================================================
 // INICIAR SALA
-// ==========================================
+//===================================================
 
 async function initRoom() {
 
     try {
 
-        // Se não existir código na URL, cria uma sala.
-
+        // Se não existir código na URL, cria uma sala
         if (!roomCode) {
 
             roomCode = await createRoom();
@@ -246,8 +315,7 @@ async function initRoom() {
 
         }
 
-        // Carrega as mensagens da sala.
-
+        // Carregar mensagens
         await loadMessages();
 
         statusDot.className = 'dot online';
@@ -260,8 +328,7 @@ async function initRoom() {
             'system'
         );
 
-        // Atualiza as mensagens periodicamente.
-
+        // Atualizar mensagens periodicamente
         pollingInterval = setInterval(() => {
 
             updateMessages();
@@ -286,9 +353,9 @@ async function initRoom() {
 
 }
 
-// ==========================================
+//===================================================
 // BOTÃO ENVIAR
-// ==========================================
+//===================================================
 
 sendBtn.addEventListener('click', sendMessage);
 
@@ -302,9 +369,9 @@ msgInput.addEventListener('keydown', event => {
 
 });
 
-// ==========================================
+//===================================================
 // COPIAR LINK DA SALA
-// ==========================================
+//===================================================
 
 copyLinkBtn.addEventListener('click', async () => {
 
@@ -330,9 +397,9 @@ copyLinkBtn.addEventListener('click', async () => {
 
 });
 
-// ==========================================
+//===================================================
 // CRIAR OUTRA SALA
-// ==========================================
+//===================================================
 
 newRoomBtn.addEventListener('click', async () => {
 
@@ -357,9 +424,3 @@ newRoomBtn.addEventListener('click', async () => {
     }
 
 });
-
-// ==========================================
-// INICIAR PROJETO
-// ==========================================
-
-initRoom();

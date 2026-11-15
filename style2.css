@@ -1,3 +1,4 @@
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -39,8 +40,13 @@ header {
     border-radius: 50%;
 }
 
-.online { background-color: #04d361; }
-.offline { background-color: #fba94c; }
+.online {
+    background-color: #04d361;
+}
+
+.offline {
+    background-color: #fba94c;
+}
 
 .header-actions {
     display: flex;
@@ -177,11 +183,10 @@ footer {
     background-color: #996dff;
 }
 
-/* Crédito discreto no canto superior direito (logo abaixo da barra) */
-/* Crédito discreto no canto superior direito (logo abaixo da barra) */
+/* Crédito no canto superior direito */
 .dev-credit {
-    align-self: flex-end; /* Alinha à direita dentro do body (que usa flex-column) */
-    margin: 10px 16px 0 0; /* Dá espaçamento do topo e da direita */
+    align-self: flex-end;
+    margin: 10px 16px 0 0;
     font-size: 0.78rem;
     color: #7c7c8a;
     background-color: rgba(32, 32, 36, 0.85);
@@ -202,3 +207,134 @@ footer {
     text-decoration: underline;
 }
 
+/* Modal de entrada */
+dialog {
+    text-align: center;
+    margin: auto;
+    background-color: #121214;
+    border: 1px solid #29292e;
+    border-radius: 8px;
+    padding: 28px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    width: 320px;
+    max-width: 90%;
+    color: white;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.tittle {
+    color: #996dff;
+    margin-bottom: 16px;
+}
+
+.tittle h2 {
+    margin: 0;
+}
+
+/* Elementos internos do modal */
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+label {
+    font-size: 14px;
+    color: #c4c4cc;
+}
+
+input {
+    background-color: #202024;
+    border: 1px solid #323238;
+    border-radius: 6px;
+    padding: 12px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #996dff;
+}
+
+/* Botão principal */
+.btn-primario {
+    background-color: #996dff;
+    color: #121214;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primario:hover {
+    background-color: #8257e5;
+}
+
+/* Divisor */
+.divisor {
+    font-size: 12px;
+    color: #7c7c8a;
+    margin: 4px 0;
+}
+
+/* Botão secundário - Anônimo */
+button.btn-secundario {
+    background-color: #202024;
+    color: #c4c4cc;
+    border: 1px solid #8257e5;
+    border-radius: 6px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+button.btn-secundario:hover {
+    background-color: #323238;
+    border-color: #996dff;
+    color: #ffffff;
+}
+
+/* Ajustes para telas menores */
+@media (max-width: 600px) {
+    header {
+        padding: 12px;
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    #username {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .btn-header {
+        flex: 1;
+    }
+
+    #messages {
+        padding: 14px;
+    }
+
+    .msg {
+        max-width: 90%;
+    }
+
+    footer {
+        padding: 12px;
+    }
+
+    #send-btn {
+        padding: 0 16px;
+    }
+}
